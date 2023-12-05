@@ -11,7 +11,7 @@ Ask me anything...or imagine something
 
 1. Clone the repository. 
 2. Install the required dependencies by running `npm install openai discordjs axios`. 
-3. Add your Discord bot token, and OpenAI API key to it. 
+3. Add your Discord bot token, and OpenAI API key inside the files where it says "ENTER YOUR xxx HERE". 
 4. Run the bot by running `node index.js`. 
 
 ### Usage 
