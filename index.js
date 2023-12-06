@@ -1,10 +1,15 @@
 const { Events,  Collection, REST, Routes, Client, GatewayIntentBits} = require('discord.js');
 const TOKEN = "ENTER YOUR DISCORD BOT TOKEN HERE"
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
-const axios = require('axios');
 
 const fs = require('node:fs');
 const path = require('node:path');
+
+// Need these in another file
+global.userUsedChatTimesMap = new Map()
+global.userUsedImagineTimesMap = new Map()
+global.userUsedChatDollars = new Map()
+global.userUsedImagineDollars = new Map()
 
 const commands = [];
 // Grab all the command files from the commands directory you created earlier
@@ -26,7 +31,7 @@ for (const file of commandFiles) {
 
 // Construct and prepare an instance of the REST module
 const rest = new REST().setToken(TOKEN);
-
+  
 // and deploy your commands!
 (async () => {
 	try {
@@ -42,7 +47,6 @@ const rest = new REST().setToken(TOKEN);
 
 		console.log(`Successfully reloaded ${data.length} application (/) commands.`);
 	} catch (error) {
-		// And of course, make sure you catch and log any errors!
 		console.error(error);
 	}
 })();
@@ -61,8 +65,37 @@ client.on(Events.InteractionCreate, async interaction => {
 		return;
 	}
 
+	var user = interaction.user.tag
+
 	try {
 		await command.execute(interaction);
+
+		// Update how much the user has used
+		if (interaction.commandName == "ask") {
+			if (userUsedChatTimesMap.has(user)) {
+				userUsedChatTimesMap.set(user, (userUsedChatTimesMap.get(user) + 1))
+				userUsedDollars.set(user, (userUsedChatDollars.get(user) + global.chatTotalPrice))
+			} else {
+				userUsedChatTimesMap.set(user, 1)
+				userUsedChatDollars.set(user, global.chatTotalPrice)
+			}
+			await interaction.channel.send("*This request by " + interaction.user.tag + " costed $" + global.chatTotalPrice + "*")
+			console.log(user + " has used the command *ask* " + userUsedChatTimesMap.get(user) + " times and $" +
+						userUsedChatDollars.get(user) + " dollars in total for this command.\n\n")
+		
+		} else if (interaction.commandName == "imagine") {
+			if (userUsedImagineTimesMap.has(user)) {
+				userUsedImagineTimesMap.set(user, (userUsedImagineTimesMap.get(user) + 1))
+				userUsedImagineTimesMap.set(user, (userUsedImagineDollars.get(user) + 0.04))
+			} else {
+				userUsedImagineTimesMap.set(user, 1)
+				userUsedImagineDollars.set(user, 0.04)
+			}
+			console.log(user + " has used the command *imagine* " + userUsedImagineTimesMap.get(user) + " times and $" +
+						userUsedImagineDollars.get(user) + " dollars in total for this command..\n\n")
+		}
+
+		
 	} catch (error) {
 		console.error(error);
 		if (interaction.replied || interaction.deferred) {
