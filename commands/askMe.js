@@ -23,10 +23,12 @@ module.exports = {
                     { name: 'Simple', value: 'simple' },
                     { name: 'Complex', value: 'complex' },
                 )),
-
+        
     async execute(interaction) {
         const msg =  interaction.options.getString('msg')
         const complexity = interaction.options.getString('complexity')
+
+        console.log("\nprompt: " + msg)        
 
         var content = null
         var ansComplexity = null
@@ -57,24 +59,27 @@ module.exports = {
         }
 
         console.log("GET message: " + content);
-
+        
         await interaction.reply('thinking...');
 
         const completion = await openai.chat.completions.create({
             model: 'gpt-4-1106-preview',
             messages: [
-                {role: "system", content: ansComplexity },
+                {role: "system", content: ansComplexity },                                                                      
                 {role: "user", content: content},
             ],
         });
-        //gpt-4-1106-preview
 
+        //gpt-4-1106-preview rates
+        const inputPrice = content.length / 1000 * 0.01
+        const outputPrice = completion.choices[0].message.content.length / 1000 * 0.03
+        const chatTotalPrice = Number((inputPrice + outputPrice).toFixed(4))
+        global.chatTotalPrice = chatTotalPrice
 
-        console.log("Response Length: " + completion.choices[0].message.content.length + "\n\n");
+        console.log("Response Length: " + completion.choices[0].message.content.length + 
+                    " and its total price was: " + chatTotalPrice)
 
-        await interaction.editReply("Question by: " + interaction.user.tag + "\nComplexity: " + complexity)
         let gcompletion = completion.choices[0].message.content
-        console.log(gcompletion)
 
         // idk if i really need this but i'll keep it here just in case
         Buffer.alloc(gcompletion.toString("base64").length)
@@ -82,15 +87,17 @@ module.exports = {
         // if the content length is longer than 2000, store it in a text file and send it.
         if (gcompletion.length > 2000) {
             console.log("Response is too long, sending as a text file\n")
-            await interaction.channel.send({
+            await interaction.editReply({
                 files: [{
                     // note: don't toString a buffer
                     attachment: Buffer.from(gcompletion),
-                    name: 'response.txt'
+                    name: interaction.user.tag + 'Response.txt'
                 }], ephemeral: true
             })
+
         } else {
-            await interaction.channel.send(gcompletion)
+            console.log(gcompletion)
+            await interaction.editReply(gcompletion)
         }
     },
 }
