@@ -21,7 +21,7 @@ module.exports = {
         await interaction.reply("Message: " + msg)
 
         const completion = await openai.chat.completions.create({
-            model: 'ft:gpt-3.5-turbo-0613:personal::89q9iteX',
+            model: 'this was just for my own custom model, you can add yours here if you want',
             messages: [
                 {role: "system", content: "respond to the text in a coherent sentence"},
                 {role: "user", content: msg},
